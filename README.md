@@ -49,7 +49,8 @@ Date : 7 April 2019
               allocateCust()
        5.4.2  A goroutine will be evaluted with ith customer to call a allocateCust(). 
 
-        /* For now I'm confused in how to assign a function call for each cashier */
+        /* For now I'm confused in how to assign a function call for each cashier 
+        Please ignore the bank.go code*/
         
          for i:=1;i<=CustNo;i++{
              go func(i int){

@@ -73,26 +73,16 @@ Date : 7 April 2019
          wg.Wait()
 
         5.4.2 All the cashier channels with be emptyed again by looping over all channels
-                for i:=range c1{
-                    if i:
-                        fmt.Printf("Cashier 1: Customer %d Completed", i)
-                    else:
-                        break
+                for i:=1;i<=100;i++{
+                    select{
+                        case msg1:=<-c1:
+                            fmt.Printf("Cashier 1: Customer %d Completed", i)
+                         case msg2:=<-c2:
+                            fmt.Printf("Cashier 2: Customer %d Completed", i)
+                         case msg3:=<-c3:
+                            fmt.Printf("Cashier 3: Customer %d Completed", i)
+                    }
                 }
-                cl.Close()
-
-                for i:=range c2{
-                    if i:
-                        fmt.Printf("Cashier 2: Customer %d Completed", i)
-                    else:
-                        break
-                }
+                c1.Close()
                 c2.Close()
-
-                for i:=range c3{
-                    if i:
-                        fmt.Printf("Cashier 3: Customer %d Completed", i)
-                    else:
-                        break
-                }
                 c3.Close()

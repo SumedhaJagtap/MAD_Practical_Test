@@ -28,7 +28,7 @@ func cashier(id int, jobs <-chan int, results chan<- int, timePerCustomer time.D
 		fmt.Println(getCurrentTime(), " --> Cashier ", id, ": Customer ", j, " Started")
 		time.Sleep(time.Second * timePerCustomer)
 		fmt.Println(getCurrentTime(), " --> Cashier ", id, ": Customer ", j, " Completed")
-		results <- j * 2
+		results <- j 
 		// fmt.Println("-----------------------------------------------------------------------")
 		// mux.Unlock()
 	}

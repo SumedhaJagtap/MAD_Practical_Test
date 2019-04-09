@@ -2,56 +2,79 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
 
-var mux = sync.Mutex{}
-
-func allocateCust(custNo int, cashierNo int, timePerCustomer int, cashier chan<- int) {
-	mux.Lock()
-	cashier <- custNo
-	fmt.Printf("Cashier %d: Customer %d Started", cashierNo, custNo)
-	time.Sleep(3 * time.Second)
-	mux.Unlock()
+func getCurrentTime() string {
+	currentTime := time.Now()
+	return currentTime.Format("2006-01-02 15:04:05")
 }
 
+var mux = sync.Mutex{}
+
+func cashier(id int, jobs <-chan int, results chan<- int, timePerCustomer time.Duration) {
+        /*
+            This function will take channel id,jobs(sender channel),results(receiver channel), timePerCustomer as an input.
+            It will iterate over all jobs of a each sending channel coming as parameter and will wait for timePerCustomer seconds to finish that job.
+
+        */
+        for j := range jobs {
+		// mux.Lock()
+		fmt.Println(getCurrentTime(), " --> Cashier ", id, ": Customer ", j, " Started")
+		time.Sleep(time.Second * timePerCustomer)
+		fmt.Println(getCurrentTime(), " --> Cashier ", id, ": Customer ", j, " Completed")
+		results <- j * 2
+		// fmt.Println("-----------------------------------------------------------------------")
+		// mux.Unlock()
+	}
+}
+
+func findValue(arg string) (string, string) {
+        /*
+            This function will take each command line argument as an input.
+            Return key and value.
+            Ex., arg: --numCashiers=3
+                 return numCashiers,3
+
+        */
+	arg = strings.Replace(arg, "--", "", -1)
+	r, _ := regexp.Compile("=[0-9]+")
+	searched := r.FindString(arg)
+	key := strings.Replace(arg, searched, "", -1)
+	value := strings.Replace(searched, "=", "", -1)
+	return key, value
+}
 func main() {
-	var wg = sync.WaitGroup{}
-	c1 := make(chan int)
-	c2 := make(chan int)
-	c3 := make(chan int)
-	timePerCustomer := 3
-	noCust := 10
-	wg.Add(3)
-	for i := 1; i <= noCust; i++ {
-		go func(i int) {
-			defer wg.Done()
-			if _, ok := <-c1; !ok {
+	variables := make(map[string]int)
 
-				allocateCust(i, 1, timePerCustomer, c1)
-
-			} else if _, ok := <-c2; !ok {
-
-				allocateCust(i, 2, timePerCustomer, c1)
-
-			} else if _, ok := <-c3; !ok {
-
-				allocateCust(i, 3, timePerCustomer, c1)
-
-			}
-		}(i)
+	for _, i := range os.Args[1:] {
+		k, v := findValue(i)
+		variables[k], _ = strconv.Atoi(v)
 	}
 
-	for i := 1; i <= 100; i++ {
-		select {
-		case msg1 := <-c1:
-			fmt.Printf("Cashier 1: Customer %d Completed", msg1)
-		case msg2 := <-c2:
-			fmt.Printf("Cashier 2: Customer %d Completed", msg2)
-		case msg3 := <-c3:
-			fmt.Printf("Cashier 3: Customer %d Completed", msg3)
-		}
+	chanJob := make(chan int, 100)      //channel to send customer
+	results := make(chan int, 100)      //channel to invoke customer
+
+	for w := 1; w <= variables["numCashiers"]; w++ {
+		go cashier(w, chanJob, results, time.Duration(variables["timePerCustomer"]))
 	}
-	wg.Wait()
+
+	fmt.Println(getCurrentTime(), " --> Bank Simulation Started")
+
+	for j := 1; j <= variables["numCustomers"]; j++ {
+		chanJob <- j
+	}
+
+	close(chanJob)
+
+	for j := 1; j <= variables["numCustomers"]; j++ {
+		<-results
+	}
+
+	fmt.Println(getCurrentTime(), " --> Bank Simulated Ended")
 }

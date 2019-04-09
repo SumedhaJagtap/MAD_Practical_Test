@@ -14,6 +14,7 @@ Sample Input:
     go run bank.go  --numCashiers=3 --numCustomers=10 --timePerCustomer=3
 
 Sample Output:
+
 2019-04-09 18:36:17  --> Bank Simulation Started
 2019-04-09 18:36:17  --> Cashier  3 : Customer  3  Started
 2019-04-09 18:36:17  --> Cashier  2 : Customer  2  Started
